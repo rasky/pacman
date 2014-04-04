@@ -1,4 +1,5 @@
 #include "hw.h"
+#include "gfx.h"
 #include <SDL/SDL.h>
 #include "Z80/Z80.h"
 
@@ -35,6 +36,10 @@ void load_roms(void)
     load_file(&ROM[0x1000], "roms/pacman.6f");
     load_file(&ROM[0x2000], "roms/pacman.6h");
     load_file(&ROM[0x3000], "roms/pacman.6j");
+
+    uint8_t romchars[0x1000];
+    load_file(romchars, "roms/pacman.5e");
+    decode_chars(romchars);
 }
 
 void WrZ80(register word Addr,register byte Value)
