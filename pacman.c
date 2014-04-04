@@ -87,11 +87,7 @@ int main(int argc, char *argv[])
         delta = ExecZ80(&cpu, CPU_CLOCK/60 + delta);
         fprintf(stdout, "[CPU][PC=%04x] VSync\n", cpu.PC.W-1);
 
-        if (interrupt_vector != 0)
-        {
-            IntZ80(&cpu, interrupt_vector);
-            interrupt_vector = 0;
-        }
+        IntZ80(&cpu, interrupt_vector);
 
         uint8_t *screen;
         int pitch;
