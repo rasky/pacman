@@ -32,8 +32,36 @@ void decode_chars(uint8_t *rom)
 
 void draw_charmap(uint8_t *screen, int pitch)
 {
+    uint8_t *vram = VIDEO_RAM;
+    int i,j;
+    for (j = 0; j < 28; ++j)
+    {
+        uint8_t *row = screen;
+        for (i = 0; i < 32; ++i)
+        {
+            uint8_t *tile = &CHARS[*vram++ * 64];
 
+            int x, y;
+            for (y = 0; y < 8; y++)
+            {
+                uint8_t *dst = row + y*pitch;
+                for (x = 0; x < 8; x++)
+                {
+                    uint8_t rgb;
+                    rgb = *tile * 64;
+                    *dst++ = rgb;
+                    *dst++ = rgb;
+                    *dst++ = rgb;
+                    *dst++ = 0;
+                    ++tile;
+                }
+            }
 
+            row += 8*4;
+        }
+
+        screen += pitch*8;
+    }
 }
 
 void gfx_draw(uint8_t *screen, int pitch)
