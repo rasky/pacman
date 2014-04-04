@@ -66,8 +66,15 @@ void OutZ80(register word Port,register byte Value)
     Port &= 0xFF;
     if (Port == 0)
     {
+        word dest = 0;
         interrupt_vector = Value;
-        fprintf(stdout, "[CPU][PC=%04x] IRQ: Vector=%02x Func=%02x%02X\n", cpu.PC.W-1, Value, ROM[Value+1], ROM[Value]);
+        if (cpu.IFF & IFF_IM2) {
+            dest = (cpu.I << 8) + interrupt_vector;
+            dest = RdZ80(dest) + (RdZ80(dest+1)<<8);
+        }
+        fprintf(stdout,
+            "[CPU][PC=%04x] IRQ: Vector=%02x Func=%02hx\n",
+            cpu.PC.W-1, Value, dest);
         return;
     }
     fprintf(stdout, "[MEM][PC=%04x] unknown I/O write at %04hx: %02hhx\n", cpu.PC.W-1, Port, Value);
