@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
         int pitch;
 
         hw_beginframe(&screen, &pitch);
+        gfx_draw(screen, pitch);
         hw_endframe();
     }
 

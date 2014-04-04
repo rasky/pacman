@@ -29,3 +29,14 @@ void decode_chars(uint8_t *rom)
         rom += 16;
     }
 }
+
+void draw_charmap(uint8_t *screen, int pitch)
+{
+
+
+}
+
+void gfx_draw(uint8_t *screen, int pitch)
+{
+    draw_charmap(screen, pitch);
+}
