@@ -7,6 +7,7 @@
 
 Z80 cpu;
 uint8_t ROM[0x4000];
+uint8_t RAM[0x1000];
 
 int load_file(uint8_t *mem, char *fn)
 {
@@ -40,6 +41,7 @@ void WrZ80(register word Addr,register byte Value)
 
 byte RdZ80(register word Addr)
 {
+    if (Addr < 0x4000) return ROM[Addr];
     fprintf(stdout, "[CPU][PC=%04x] unknown read at %04hx\n", cpu.PC.W-1, Addr);
     return 0xFF;
 }
@@ -60,6 +62,7 @@ void PatchZ80(register Z80 *R) {}
 int main(int argc, char *argv[])
 {
     hw_init();
+    load_roms();
 
     int delta = 0;
     ResetZ80(&cpu);
