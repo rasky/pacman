@@ -10,6 +10,7 @@ uint8_t interrupt_vector;
 uint8_t ROM[0x4000];
 uint8_t RAM1[0x400];
 uint8_t RAM2[0x400];
+uint8_t RAM3[0x400];
 
 int load_file(uint8_t *mem, char *fn)
 {
@@ -41,6 +42,9 @@ void WrZ80(register word Addr,register byte Value)
     if (Addr < 0x4000) { fprintf(stdout, "[CPU][PC=%04x] writing to ROM %04hx: %02hhx\n", cpu.PC.W-1, Addr, Value); return; }
     if (Addr < 0x4400) { RAM1[Addr-0x4000] = Value; return; }
     if (Addr < 0x4800) { RAM2[Addr-0x4400] = Value; return; }
+    if (Addr < 0x4C00) { goto unknown; }
+    if (Addr < 0x5000) { RAM2[Addr-0x4C00] = Value; return; }
+unknown:
     fprintf(stdout, "[CPU][PC=%04x] unknown write at %04hx: %02hhx\n", cpu.PC.W-1, Addr, Value);
 }
 
@@ -49,6 +53,9 @@ byte RdZ80(register word Addr)
     if (Addr < 0x4000) return ROM[Addr];
     if (Addr < 0x4400) return RAM1[Addr-0x4000];
     if (Addr < 0x4800) return RAM2[Addr-0x4400];
+    if (Addr < 0x4C00) { goto unknown; }
+    if (Addr < 0x5000) return RAM2[Addr-0x4C00];
+unknown:
     fprintf(stdout, "[CPU][PC=%04x] unknown read at %04hx\n", cpu.PC.W-1, Addr);
     return 0xFF;
 }
