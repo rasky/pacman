@@ -11,7 +11,7 @@ int framecounter;
 uint8_t interrupt_vector;
 uint8_t ROM[0x4000];
 uint8_t VIDEO_RAM[0x400];
-uint8_t RAM2[0x400];
+uint8_t COLOR_RAM[0x400];
 uint8_t RAM3[0x400];
 
 int load_file(uint8_t *mem, char *fn)
@@ -38,9 +38,14 @@ void load_roms(void)
     load_file(&ROM[0x2000], "roms/pacman.6h");
     load_file(&ROM[0x3000], "roms/pacman.6j");
 
-    uint8_t romchars[0x1000];
-    load_file(romchars, "roms/pacman.5e");
-    decode_chars(romchars);
+    uint8_t temp[0x1000];
+    load_file(temp, "roms/pacman.5e");
+    decode_chars(temp);
+
+    load_file(temp, "roms/82s123.7f");
+    decode_colors(temp);
+    load_file(temp, "roms/82s126.4a");
+    decode_palettes(temp);
 }
 
 uint8_t IN0()
@@ -72,7 +77,7 @@ void WrZ80(register word Addr,register byte Value)
     Addr &= 0x7FFF;
     if (Addr < 0x4000) { fprintf(stdout, "[CPU][PC=%04x](%04d) writing to ROM %04hx: %02hhx\n", cpu.PC.W-1, framecounter, Addr, Value); return; }
     if (Addr < 0x4400) { VIDEO_RAM[Addr-0x4000] = Value; return; }
-    if (Addr < 0x4800) { RAM2[Addr-0x4400] = Value; return; }
+    if (Addr < 0x4800) { COLOR_RAM[Addr-0x4400] = Value; return; }
     if (Addr < 0x4C00) { goto unknown; }
     if (Addr < 0x5000) { RAM3[Addr-0x4C00] = Value; return; }
     if (Addr == 0x50C0) { /* watchdog */ return; }
@@ -85,7 +90,7 @@ byte RdZ80(register word Addr)
     Addr &= 0x7FFF;
     if (Addr < 0x4000) return ROM[Addr];
     if (Addr < 0x4400) return VIDEO_RAM[Addr-0x4000];
-    if (Addr < 0x4800) return RAM2[Addr-0x4400];
+    if (Addr < 0x4800) return COLOR_RAM[Addr-0x4400];
     if (Addr < 0x4C00) { goto unknown; }
     if (Addr < 0x5000) return RAM3[Addr-0x4C00];
     if (Addr == 0x5000) { return IN0(); }
