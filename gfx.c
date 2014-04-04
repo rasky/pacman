@@ -3,9 +3,11 @@
 
 #define BIT(x,n) (((x)>>(n))&1)
 
-#define NUM_CHARS 256
+#define NUM_CHARS    256
+#define NUM_SPRITES  64
 uint8_t CHARS[256 * (8*8)];
 uint8_t COLORS[32][4];
+uint8_t SPRITES[NUM_SPRITES][16*16];
 uint8_t PALETTES[64][4];
 
 void decode_chars(uint8_t *rom)
@@ -31,6 +33,33 @@ void decode_chars(uint8_t *rom)
         rom += 16;
     }
 }
+
+void decode_sprites(uint8_t *rom)
+{
+    int i,x,y;
+    static const int xtab[16] = {8,16,24,0};
+    static const int ytab[16] = {0,1,2,3,4,5,6,7,32,33,34,35,36,37,38,39};
+
+    uint8_t *cursprite = (uint8_t*)SPRITES;
+    for (i=0;i<NUM_SPRITES;i++)
+    {
+        for (y=0;y<16;y++)
+        {
+            for (x=0;x<4;x++)
+            {
+                uint8_t r = rom[xtab[x]+ytab[y]];
+                cursprite[3] = BIT(r,0) | (BIT(r,4)<<1);
+                cursprite[2] = BIT(r,1) | (BIT(r,5)<<1);
+                cursprite[1] = BIT(r,2) | (BIT(r,6)<<1);
+                cursprite[0] = BIT(r,3) | (BIT(r,7)<<1);
+                cursprite+=4;
+            }
+        }
+
+        rom += 64;
+   }
+}
+
 
 void decode_colors(uint8_t *rom)
 {
