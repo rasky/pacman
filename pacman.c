@@ -35,23 +35,23 @@ void load_roms(void)
 
 void WrZ80(register word Addr,register byte Value)
 {
-    fprintf(stdout, "[CPU][PC=%04x] unknown write at %04x: %02x\n", cpu.PC.W-1, Addr, Value);
+    fprintf(stdout, "[CPU][PC=%04x] unknown write at %04hx: %02hhx\n", cpu.PC.W-1, Addr, Value);
 }
 
 byte RdZ80(register word Addr)
 {
-    fprintf(stdout, "[CPU][PC=%04x] unknown read at %04x\n", cpu.PC.W-1, Addr);
+    fprintf(stdout, "[CPU][PC=%04x] unknown read at %04hx\n", cpu.PC.W-1, Addr);
     return 0xFF;
 }
 
 void OutZ80(register word Port,register byte Value)
 {
-    fprintf(stdout, "[MEM][PC=%04x] unknown I/O write at %04x: %02x\n", cpu.PC.W-1, Port, Value);
+    fprintf(stdout, "[MEM][PC=%04x] unknown I/O write at %04hx: %02hhx\n", cpu.PC.W-1, Port, Value);
 }
 
 byte InZ80(register word Port)
 {
-    fprintf(stdout, "[MEM][PC=%04x] unknown I/O read at %04x\n", cpu.PC.W-1, Port);
+    fprintf(stdout, "[MEM][PC=%04x] unknown I/O read at %04hx\n", cpu.PC.W-1, Port);
     return 0xFF;
 }
 
