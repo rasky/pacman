@@ -130,7 +130,47 @@ void draw_charmap(uint8_t *screen, int pitch)
     }
 }
 
+void draw_sprites(uint8_t *screen, int pitch)
+{
+    int i;
+    for (i=0;i<8;i++)
+    {
+        int sx = 272 - SPRITEPOS_RAM[i*2+1];
+        int sy = SPRITEPOS_RAM[i*2] - 31;
+
+        if (sx < 0 || sy < 0)
+            continue;
+
+        int x,y;
+
+        #define OFFPIXEL(sx,sy)  ((sx)<=0 || (sy)<=0 || (sx)>=256 || (sy)>=224)
+
+        uint8_t *row = screen + sy*pitch + sx*4;
+        uint8_t *src = SPRITES[4];
+
+        for (y=0;y<16;y++)
+        {
+            uint8_t *dst = row;
+            for (x=0;x<16;x++)
+            {
+                uint8_t rgb = *src * 64;
+                if (!OFFPIXEL(sx+x, sy+y))
+                {
+                    *dst++=rgb;
+                    *dst++=rgb;
+                    *dst++=rgb;
+                    *dst++=0;
+                }
+                src++;
+            }
+            row += pitch;
+        }
+    }
+}
+
+
 void gfx_draw(uint8_t *screen, int pitch)
 {
     draw_charmap(screen, pitch);
+    draw_sprites(screen, pitch);
 }

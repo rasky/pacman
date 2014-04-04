@@ -13,6 +13,7 @@ uint8_t ROM[0x4000];
 uint8_t VIDEO_RAM[0x400];
 uint8_t COLOR_RAM[0x400];
 uint8_t RAM[0x800];
+uint8_t SPRITEPOS_RAM[0x10];
 
 int load_file(uint8_t *mem, char *fn)
 {
@@ -81,6 +82,7 @@ void WrZ80(register word Addr,register byte Value)
     if (Addr < 0x4800) { COLOR_RAM[Addr-0x4400] = Value; return; }
     if (Addr < 0x5000) { RAM[Addr-0x4800] = Value; return; }
     if (Addr == 0x50C0) { /* watchdog */ return; }
+    if (Addr >= 0x5060 && Addr < 0x5070) { SPRITEPOS_RAM[Addr-0x5060] = Value; return; }
 unknown:
     fprintf(stdout, "[CPU][PC=%04x](%04d) unknown write at %04hx: %02hhx\n", cpu.PC.W-1, framecounter, Addr, Value);
 }
@@ -94,6 +96,7 @@ byte RdZ80(register word Addr)
     if (Addr < 0x5000) return RAM[Addr-0x4800];
     if (Addr == 0x5000) { return IN0(); }
     if (Addr == 0x5040) { return IN1(); }
+    if (Addr >= 0x5060 && Addr < 0x5070) { return SPRITEPOS_RAM[Addr-0x5060]; }
 unknown:
     fprintf(stdout, "[CPU][PC=%04x](%04d) unknown read at %04hx\n", cpu.PC.W-1, framecounter, Addr);
     return 0xFF;
