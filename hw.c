@@ -6,6 +6,8 @@ static SDL_Surface *screen;
 static SDL_Surface *frame;
 static FPSmanager fps;
 
+#define SPLIT 20
+
 void hw_init(void)
 {
     if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
@@ -15,7 +17,7 @@ void hw_init(void)
     }
     atexit(SDL_Quit);
 
-    screen=SDL_SetVideoMode(32*8, 28*8, 32,SDL_DOUBLEBUF);
+    screen=SDL_SetVideoMode(256+224+SPLIT, 256, 32,SDL_DOUBLEBUF);
     if (screen == NULL)
     {
        printf("Unable to set video mode: %s\n", SDL_GetError());
@@ -55,8 +57,35 @@ void hw_beginframe(uint8_t **screen, int *pitch)
 
 void hw_endframe(void)
 {
+
+    SDL_LockSurface(screen);
+
+    uint8_t *spixels = screen->pixels;
+    uint8_t *fpixels = frame->pixels;
+    int x,y;
+    for (y=0;y<224;y++)
+    {
+        uint8_t *framerow = fpixels + (223-y)*frame->pitch;
+        for (x=0;x<256;x++)
+        {
+            int sx = 256+SPLIT+y;
+            int sy = x;
+
+            spixels[sy*screen->pitch + sx*4] = framerow[x*4];
+            spixels[sy*screen->pitch + sx*4+1] = framerow[x*4+1];
+            spixels[sy*screen->pitch + sx*4+2] = framerow[x*4+2];
+            spixels[sy*screen->pitch + sx*4+3] = framerow[x*4+3];
+
+            spixels[y*screen->pitch + x*4] = framerow[x*4];
+            spixels[y*screen->pitch + x*4+1] = framerow[x*4+1];
+            spixels[y*screen->pitch + x*4+2] = framerow[x*4+2];
+            spixels[y*screen->pitch + x*4+3] = framerow[x*4+3];
+        }
+    }
+
     SDL_UnlockSurface(frame);
-    SDL_BlitSurface(frame, NULL, screen, NULL);
+    SDL_UnlockSurface(screen);
+
     SDL_Flip(screen);
     SDL_framerateDelay(&fps);
 }
