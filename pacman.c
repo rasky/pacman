@@ -55,11 +55,19 @@ byte RdZ80(register word Addr)
 
 void OutZ80(register word Port,register byte Value)
 {
+    Port &= 0xFF;
+    if (Port == 0)
+    {
+        interrupt_vector = Value;
+        fprintf(stdout, "[CPU][PC=%04x] IRQ: Vector=%02x Func=%02x%02X\n", cpu.PC.W-1, Value, ROM[Value+1], ROM[Value]);
+        return;
+    }
     fprintf(stdout, "[MEM][PC=%04x] unknown I/O write at %04hx: %02hhx\n", cpu.PC.W-1, Port, Value);
 }
 
 byte InZ80(register word Port)
 {
+    Port &= 0xFF;
     fprintf(stdout, "[MEM][PC=%04x] unknown I/O read at %04hx\n", cpu.PC.W-1, Port);
     return 0xFF;
 }
@@ -77,6 +85,13 @@ int main(int argc, char *argv[])
     while (hw_poll())
     {
         delta = ExecZ80(&cpu, CPU_CLOCK/60 + delta);
+        fprintf(stdout, "[CPU][PC=%04x] VSync\n", cpu.PC.W-1);
+
+        if (interrupt_vector != 0)
+        {
+            IntZ80(&cpu, interrupt_vector);
+            interrupt_vector = 0;
+        }
 
         uint8_t *screen;
         int pitch;
