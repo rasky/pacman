@@ -7,6 +7,7 @@
 #define CPU_CLOCK           (MASTER_CLOCK/6)
 
 Z80 cpu;
+int framecounter;
 uint8_t interrupt_vector;
 uint8_t ROM[0x4000];
 uint8_t VIDEO_RAM[0x400];
@@ -45,14 +46,14 @@ void load_roms(void)
 void WrZ80(register word Addr,register byte Value)
 {
     Addr &= 0x7FFF;
-    if (Addr < 0x4000) { fprintf(stdout, "[CPU][PC=%04x] writing to ROM %04hx: %02hhx\n", cpu.PC.W-1, Addr, Value); return; }
+    if (Addr < 0x4000) { fprintf(stdout, "[CPU][PC=%04x](%04d) writing to ROM %04hx: %02hhx\n", cpu.PC.W-1, framecounter, Addr, Value); return; }
     if (Addr < 0x4400) { VIDEO_RAM[Addr-0x4000] = Value; return; }
     if (Addr < 0x4800) { RAM2[Addr-0x4400] = Value; return; }
     if (Addr < 0x4C00) { goto unknown; }
     if (Addr < 0x5000) { RAM3[Addr-0x4C00] = Value; return; }
     if (Addr == 0x50C0) { /* watchdog */ return; }
 unknown:
-    fprintf(stdout, "[CPU][PC=%04x] unknown write at %04hx: %02hhx\n", cpu.PC.W-1, Addr, Value);
+    fprintf(stdout, "[CPU][PC=%04x](%04d) unknown write at %04hx: %02hhx\n", cpu.PC.W-1, framecounter, Addr, Value);
 }
 
 byte RdZ80(register word Addr)
@@ -64,7 +65,7 @@ byte RdZ80(register word Addr)
     if (Addr < 0x4C00) { goto unknown; }
     if (Addr < 0x5000) return RAM3[Addr-0x4C00];
 unknown:
-    fprintf(stdout, "[CPU][PC=%04x] unknown read at %04hx\n", cpu.PC.W-1, Addr);
+    fprintf(stdout, "[CPU][PC=%04x](%04d) unknown read at %04hx\n", cpu.PC.W-1, framecounter, Addr);
     return 0xFF;
 }
 
@@ -84,13 +85,13 @@ void OutZ80(register word Port,register byte Value)
             cpu.PC.W-1, Value, dest);
         return;
     }
-    fprintf(stdout, "[MEM][PC=%04x] unknown I/O write at %04hx: %02hhx\n", cpu.PC.W-1, Port, Value);
+    fprintf(stdout, "[MEM][PC=%04x](%04d) unknown I/O write at %04hx: %02hhx\n", cpu.PC.W-1, framecounter, Port, Value);
 }
 
 byte InZ80(register word Port)
 {
     Port &= 0xFF;
-    fprintf(stdout, "[MEM][PC=%04x] unknown I/O read at %04hx\n", cpu.PC.W-1, Port);
+    fprintf(stdout, "[MEM][PC=%04x](%04d) unknown I/O read at %04hx\n", cpu.PC.W-1, framecounter, Port);
     return 0xFF;
 }
 
@@ -107,7 +108,6 @@ int main(int argc, char *argv[])
     while (hw_poll())
     {
         delta = ExecZ80(&cpu, CPU_CLOCK/60 + delta);
-        fprintf(stdout, "[CPU][PC=%04x] VSync\n", cpu.PC.W-1);
 
         IntZ80(&cpu, interrupt_vector);
 
@@ -117,6 +117,7 @@ int main(int argc, char *argv[])
         hw_beginframe(&screen, &pitch);
         gfx_draw(screen, pitch);
         hw_endframe();
+        ++framecounter;
     }
 
     return 0;
