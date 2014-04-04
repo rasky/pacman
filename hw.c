@@ -5,6 +5,7 @@
 static SDL_Surface *screen;
 static SDL_Surface *frame;
 static FPSmanager fps;
+uint8_t *keystate;
 
 #define SPLIT 20
 
@@ -44,6 +45,8 @@ int hw_poll(void)
                 return 0;
         }
     }
+
+    keystate = SDL_GetKeyState(NULL);
 
     return 1;
 }

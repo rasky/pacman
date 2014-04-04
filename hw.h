@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+extern uint8_t *keystate;
+
 void hw_init(void);
 int hw_poll(void);
 
