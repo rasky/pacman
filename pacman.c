@@ -43,6 +43,30 @@ void load_roms(void)
     decode_chars(romchars);
 }
 
+uint8_t IN0()
+{
+    uint8_t ret = 0xFF;
+
+    if (keystate[SDLK_5])
+        ret &= ~(1<<5);
+    if (keystate[SDLK_6])
+        ret &= ~(1<<6);
+
+    return ret;
+}
+
+uint8_t IN1()
+{
+    uint8_t ret = 0xFF;
+
+    if (keystate[SDLK_1])
+        ret &= ~(1<<5);
+    if (keystate[SDLK_2])
+        ret &= ~(1<<6);
+
+    return ret;
+}
+
 void WrZ80(register word Addr,register byte Value)
 {
     Addr &= 0x7FFF;
@@ -64,6 +88,8 @@ byte RdZ80(register word Addr)
     if (Addr < 0x4800) return RAM2[Addr-0x4400];
     if (Addr < 0x4C00) { goto unknown; }
     if (Addr < 0x5000) return RAM3[Addr-0x4C00];
+    if (Addr == 0x5000) { return IN0(); }
+    if (Addr == 0x5040) { return IN1(); }
 unknown:
     fprintf(stdout, "[CPU][PC=%04x](%04d) unknown read at %04hx\n", cpu.PC.W-1, framecounter, Addr);
     return 0xFF;
