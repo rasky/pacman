@@ -58,6 +58,8 @@ void hw_beginframe(uint8_t **screen, int *pitch)
     *pitch = frame->pitch;
 }
 
+#define ARGB  1
+
 void hw_endframe(void)
 {
 
@@ -68,21 +70,34 @@ void hw_endframe(void)
     int x,y;
     for (y=0;y<224;y++)
     {
-        uint8_t *framerow = fpixels + (223-y)*frame->pitch;
+        int ry = 223-y;
+        uint8_t *framerow = fpixels + ry*frame->pitch;
         for (x=0;x<256;x++)
         {
             int sx = 256+SPLIT+y;
             int sy = x;
 
-            spixels[sy*screen->pitch + sx*4] = framerow[x*4];
+#if ARGB
+            spixels[sy*screen->pitch + sx*4+1] = framerow[x*4];
+            spixels[sy*screen->pitch + sx*4+2] = framerow[x*4+1];
+            spixels[sy*screen->pitch + sx*4+3] = framerow[x*4+2];
+            spixels[sy*screen->pitch + sx*4+0] = 0;
+
+            spixels[ry*screen->pitch + x*4+1] = framerow[x*4];
+            spixels[ry*screen->pitch + x*4+2] = framerow[x*4+1];
+            spixels[ry*screen->pitch + x*4+3] = framerow[x*4+2];
+            spixels[ry*screen->pitch + x*4+0] = 0;
+#else
+            spixels[sy*screen->pitch + sx*4+0] = framerow[x*4];
             spixels[sy*screen->pitch + sx*4+1] = framerow[x*4+1];
             spixels[sy*screen->pitch + sx*4+2] = framerow[x*4+2];
-            spixels[sy*screen->pitch + sx*4+3] = framerow[x*4+3];
+            spixels[sy*screen->pitch + sx*4+3] = 0;
 
-            spixels[y*screen->pitch + x*4] = framerow[x*4];
-            spixels[y*screen->pitch + x*4+1] = framerow[x*4+1];
-            spixels[y*screen->pitch + x*4+2] = framerow[x*4+2];
-            spixels[y*screen->pitch + x*4+3] = framerow[x*4+3];
+            spixels[ry*screen->pitch + x*4+0] = framerow[x*4+0];
+            spixels[ry*screen->pitch + x*4+1] = framerow[x*4+1];
+            spixels[ry*screen->pitch + x*4+2] = framerow[x*4+2];
+            spixels[ry*screen->pitch + x*4+3] = 0;
+#endif
         }
     }
 
