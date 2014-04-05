@@ -18,14 +18,14 @@ void hw_init(void)
     }
     atexit(SDL_Quit);
 
-    screen=SDL_SetVideoMode(256+224+SPLIT, 256, 32,SDL_DOUBLEBUF);
+    screen=SDL_SetVideoMode(288+224+SPLIT, 288, 32,SDL_DOUBLEBUF);
     if (screen == NULL)
     {
        printf("Unable to set video mode: %s\n", SDL_GetError());
        exit(1);
     }
 
-    frame = SDL_CreateRGBSurface(SDL_SWSURFACE, 32*8, 28*8, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0x0);
+    frame = SDL_CreateRGBSurface(SDL_SWSURFACE, 36*8, 28*8, 32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0x0);
     SDL_initFramerate(&fps);
     SDL_setFramerate(&fps, 60);
 }
@@ -72,9 +72,9 @@ void hw_endframe(void)
     {
         int ry = 223-y;
         uint8_t *framerow = fpixels + ry*frame->pitch;
-        for (x=0;x<256;x++)
+        for (x=0;x<288;x++)
         {
-            int sx = 256+SPLIT+y;
+            int sx = 288+SPLIT+y;
             int sy = x;
 
 #if ARGB

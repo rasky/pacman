@@ -5,7 +5,7 @@
 
 #define NUM_CHARS    256
 #define NUM_SPRITES  64
-uint8_t CHARS[256 * (8*8)];
+uint8_t CHARS[256][(8*8)];
 uint8_t COLORS[32][4];
 uint8_t SPRITES[NUM_SPRITES][16*16];
 uint8_t PALETTES[64][4];
@@ -14,7 +14,7 @@ void decode_chars(uint8_t *rom)
 {
     int t,x,y;
 
-    uint8_t *curchar = CHARS;
+    uint8_t *curchar = (uint8_t*)CHARS;
     for (t=0;t<NUM_CHARS;t++)
     {
         for (y=0;y<8;y++)
@@ -94,39 +94,59 @@ void decode_palettes(uint8_t *rom)
     memcpy(PALETTES, rom, 64*4);
 }
 
+static void draw_char(uint8_t *screen, int pitch, int numchar, int numpalette)
+{
+    uint8_t *tile = CHARS[numchar];
+    uint8_t *palette = PALETTES[numpalette & 0x3F];
+
+    int x, y;
+    for (y = 0; y < 8; y++)
+    {
+        uint8_t *dst = screen + y*pitch;
+        for (x = 0; x < 8; x++)
+        {
+            uint8_t *rgb;
+            rgb = COLORS[palette[*tile&3] & 31];
+            *dst++ = rgb[0];
+            *dst++ = rgb[1];
+            *dst++ = rgb[2];
+            *dst++ = 0;
+            ++tile;
+        }
+    }
+}
+
 void draw_charmap(uint8_t *screen, int pitch)
 {
-    uint8_t *vram = VIDEO_RAM;
-    uint8_t *cram = COLOR_RAM;
+    enum {
+        OFFSET_SPECIAL_LINE1 = 2,
+        OFFSET_SPECIAL_LINE2 = OFFSET_SPECIAL_LINE1+32,
+        OFFSET_SPECIAL_LINE3 = 64 + 32*28 + 2,
+        OFFSET_SPECIAL_LINE4 = OFFSET_SPECIAL_LINE3+32
+    };
+
+    uint8_t *vram = VIDEO_RAM+64;
+    uint8_t *cram = COLOR_RAM+64;
     int i,j;
+
     for (j = 0; j < 28; ++j)
     {
-        uint8_t *row = screen;
+        uint8_t *row = screen + j*8*pitch;
+
+        draw_char(row, pitch, VIDEO_RAM[OFFSET_SPECIAL_LINE3+j], COLOR_RAM[OFFSET_SPECIAL_LINE3+j]);
+        row += 8*4;
+        draw_char(row, pitch, VIDEO_RAM[OFFSET_SPECIAL_LINE4+j], COLOR_RAM[OFFSET_SPECIAL_LINE4+j]);
+        row += 8*4;
+
         for (i = 0; i < 32; ++i)
         {
-            uint8_t *tile = &CHARS[*vram++ * 64];
-            uint8_t *palette = PALETTES[((*cram++) & 0x3F)];
-
-            int x, y;
-            for (y = 0; y < 8; y++)
-            {
-                uint8_t *dst = row + y*pitch;
-                for (x = 0; x < 8; x++)
-                {
-                    uint8_t *rgb;
-                    rgb = COLORS[palette[*tile&3] & 31];
-                    *dst++ = rgb[0];
-                    *dst++ = rgb[1];
-                    *dst++ = rgb[2];
-                    *dst++ = 0;
-                    ++tile;
-                }
-            }
-
+            draw_char(row, pitch, *vram++, *cram++);
             row += 8*4;
         }
 
-        screen += pitch*8;
+        draw_char(row, pitch, VIDEO_RAM[OFFSET_SPECIAL_LINE1+j], COLOR_RAM[OFFSET_SPECIAL_LINE1+j]);
+        row += 8*4;
+        draw_char(row, pitch, VIDEO_RAM[OFFSET_SPECIAL_LINE2+j], COLOR_RAM[OFFSET_SPECIAL_LINE2+j]);
     }
 }
 
