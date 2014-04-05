@@ -178,19 +178,19 @@ void draw_sprites(uint8_t *screen, int pitch)
             uint8_t *dst = row;
             for (x=0;x<16;x++)
             {
-                int sx,sy;
-                uint8_t spix;
-                sx = (flip & 1) ? 15-x : x;
-                sy = (flip & 2) ? 15-y : y;
-                spix = src[sy*16+sx];
-
-                if (!OFFPIXEL(sx+x, sy+y) && spix)
+                if (!OFFPIXEL(sx+x, sy+y))
                 {
-                    uint8_t *rgb = COLORS[PALETTES[palette][spix]];
-                    dst[0]=*rgb++;
-                    dst[1]=*rgb++;
-                    dst[2]=*rgb++;
-                    dst[3]=0;
+                    int spritex = (flip & 1) ? 15-x : x;
+                    int spritey = (flip & 2) ? 15-y : y;
+                    int spritepix = src[spritey*16+spritex];
+                    if (spritepix)
+                    {
+                        uint8_t *rgb = COLORS[PALETTES[palette][spritepix]];
+                        dst[0]=*rgb++;
+                        dst[1]=*rgb++;
+                        dst[2]=*rgb++;
+                        dst[3]=0;
+                    }
                 }
                 dst += 4;
             }
