@@ -54,6 +54,15 @@ uint8_t IN0()
 {
     uint8_t ret = 0xFF;
 
+    if (keystate[SDLK_UP])
+        ret &= ~(1<<0);
+    if (keystate[SDLK_LEFT])
+        ret &= ~(1<<1);
+    if (keystate[SDLK_RIGHT])
+        ret &= ~(1<<2);
+    if (keystate[SDLK_DOWN])
+        ret &= ~(1<<3);
+
     if (keystate[SDLK_5])
         ret &= ~(1<<5);
     if (keystate[SDLK_6])
