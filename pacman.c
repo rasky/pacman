@@ -1,5 +1,6 @@
 #include "hw.h"
 #include "gfx.h"
+#include "sound.h"
 #include <SDL/SDL.h>
 #include "Z80/Z80.h"
 
@@ -14,6 +15,7 @@ uint8_t VIDEO_RAM[0x400];
 uint8_t COLOR_RAM[0x400];
 uint8_t RAM[0x800];
 uint8_t SPRITEPOS_RAM[0x10];
+uint8_t SOUND_ROM[0x100];
 
 int load_file(uint8_t *mem, char *fn)
 {
@@ -48,6 +50,8 @@ void load_roms(void)
     decode_colors(temp);
     load_file(temp, "roms/82s126.4a");
     decode_palettes(temp);
+
+    load_file(SOUND_ROM, "roms/82s126.1m");
 }
 
 uint8_t IN0()
@@ -90,6 +94,7 @@ void WrZ80(register word Addr,register byte Value)
     if (Addr < 0x4400) { VIDEO_RAM[Addr-0x4000] = Value; return; }
     if (Addr < 0x4800) { COLOR_RAM[Addr-0x4400] = Value; return; }
     if (Addr < 0x5000) { RAM[Addr-0x4800] = Value; return; }
+    if (Addr >= 0x5040 && Addr < 0x5060) { sound_register_w(Addr-0x5040, Value); return; }
     if (Addr == 0x50C0) { /* watchdog */ return; }
     if (Addr >= 0x5060 && Addr < 0x5070) { SPRITEPOS_RAM[Addr-0x5060] = Value; return; }
 unknown:
@@ -139,6 +144,8 @@ byte InZ80(register word Port)
 
 void PatchZ80(register Z80 *R) {}
 
+#include <time.h>
+
 int main(int argc, char *argv[])
 {
     hw_init();
@@ -156,9 +163,15 @@ int main(int argc, char *argv[])
         uint8_t *screen;
         int pitch;
 
+        int16_t *audio;
+        hw_beginaudio(&audio);
+        sound_play(audio, HW_AUDIO_NUMSAMPLES);
+        hw_endaudio();
+
         hw_beginframe(&screen, &pitch);
         gfx_draw(screen, pitch);
         hw_endframe();
+
         ++framecounter;
     }
 
